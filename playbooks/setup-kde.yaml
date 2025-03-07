@@ -2,6 +2,11 @@
   become: true
   tasks:
 
+    - name: Update system and upgrade all packages
+      pacman:
+        update_cache: yes
+        upgrade: yes
+
     - name: Update system package database
       pacman:
         update_cache: yes
