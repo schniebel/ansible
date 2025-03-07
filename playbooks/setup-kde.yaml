@@ -1,0 +1,53 @@
+- hosts: localhost
+  become: true
+  tasks:
+
+    - name: Update system package database
+      pacman:
+        update_cache: yes
+
+    - name: Install Xorg (Display Server)
+      pacman:
+        name:
+          - xorg
+          - xorg-server
+        state: present
+
+    - name: Install Nvidia Drivers
+      pacman:
+        name:
+          - nvidia
+          - nvidia-utils
+          - lib32-nvidia-utils
+        state: present
+
+    - name: Enable Nvidia DRM Kernel Mode Setting
+      copy:
+        dest: /etc/modprobe.d/nvidia-drm.conf
+        content: "options nvidia-drm modeset=1"
+
+    - name: Regenerate Initramfs
+      command: mkinitcpio -P
+
+    - name: Install KDE Plasma
+      pacman:
+        name:
+          - plasma
+          - kde-applications
+        state: present
+
+    - name: Install SDDM (KDE Display Manager)
+      pacman:
+        name: sddm
+        state: present
+
+    - name: Enable SDDM to start at boot
+      systemd:
+        name: sddm
+        enabled: yes
+        state: started
+
+    - name: Reboot the system (Optional)
+      reboot:
+        msg: "Rebooting to complete KDE & Nvidia installation"
+        pre_reboot_delay: 10
