@@ -31,18 +31,6 @@
         replace: '\1'
       notify: Regenerate Initramfs
 
-    - name: Blacklist Nouveau in GRUB
-      replace:
-        path: /etc/default/grub
-        regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT=".*)"'
-        replace: '\1 modprobe.blacklist=nouveau"'
-      notify: Update GRUB
-
-    - name: Blacklist Nouveau in modprobe
-      copy:
-        dest: /etc/modprobe.d/blacklist-nouveau.conf
-        content: "blacklist nouveau"
-
     - name: Enable Nvidia DRM Kernel Mode Setting
       copy:
         dest: /etc/modprobe.d/nvidia-drm.conf
