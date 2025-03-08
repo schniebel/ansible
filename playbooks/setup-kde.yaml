@@ -7,10 +7,6 @@
         update_cache: yes
         upgrade: yes
 
-    - name: Update system package database
-      pacman:
-        update_cache: yes
-
     - name: Install Xorg (Display Server)
       pacman:
         name:
@@ -18,13 +14,22 @@
           - xorg-server
         state: present
 
-    - name: Install Nvidia Drivers
+    - name: Install Nvidia Drivers (Using DKMS)
       pacman:
         name:
-          - nvidia
+          - nvidia-dkms
           - nvidia-utils
-          - lib32-nvidia-utils
+          - lib32-nvidia-utils  # For Steam & 32-bit apps
+          - nvidia-settings      # Nvidia control panel
+          - nvidia-prime         # For hybrid graphics (if needed)
         state: present
+
+    - name: Remove kms from mkinitcpio hooks
+      replace:
+        path: /etc/mkinitcpio.conf
+        regexp: '(^HOOKS=.*)\bkms\b'
+        replace: '\1'
+      notify: Regenerate Initramfs
 
     - name: Enable Nvidia DRM Kernel Mode Setting
       copy:
@@ -46,6 +51,23 @@
         name: sddm
         state: present
 
+    - name: Force SDDM to use X11
+      copy:
+        dest: /etc/sddm.conf.d/kde_settings.conf
+        content: |
+          [General]
+          DisplayServer=x11
+
+    - name: Set ibt=off in GRUB for 11th Gen+ Intel CPUs
+      replace:
+        path: /etc/default/grub
+        regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT=".*)"'
+        replace: '\1 ibt=off"'
+      notify: Update GRUB
+
+    - name: Update GRUB
+      command: grub-mkconfig -o /boot/grub/grub.cfg
+
     - name: Enable SDDM to start at boot
       systemd:
         name: sddm
@@ -56,3 +78,9 @@
       reboot:
         msg: "Rebooting to complete KDE & Nvidia installation"
         pre_reboot_delay: 10
+
+  handlers:
+    - name: Regenerate Initramfs
+      command: mkinitcpio -P
+    - name: Update GRUB
+      command: grub-mkconfig -o /boot/grub/grub.cfg
