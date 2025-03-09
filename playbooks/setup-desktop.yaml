@@ -102,6 +102,43 @@
         enabled: yes
         state: started
 
+    - name: Disable suspend, hibernate, hybrid-sleep & suspend-then-hibernate
+      systemd:
+        name: "{{ item }}"
+        enabled: false
+        masked: true
+      loop:
+        - sleep.target
+        - suspend.target
+        - hibernate.target
+        - hybrid-sleep.target
+        - suspend-then-hibernate.target
+
+    - name: Ensure KDE power management settings prevent sleep
+      copy:
+        dest: /etc/xdg/autostart/disable-sleep.desktop
+        content: |
+          [Desktop Entry]
+          Type=Application
+          Exec=xset -dpms; xset s off
+          Hidden=false
+          NoDisplay=false
+          X-GNOME-Autostart-enabled=true
+          Name[en_US]=Disable Sleep
+          Name=Disable Sleep
+          Comment=Prevents sleep and screen blanking
+
+    - name: Ensure systemd prevents sleep when lid is closed
+      lineinfile:
+        path: /etc/systemd/logind.conf
+        regexp: '^#?HandleLidSwitch='
+        line: 'HandleLidSwitch=ignore'
+
+    - name: Restart systemd-logind to apply lid switch settings
+      systemd:
+        name: systemd-logind
+        state: restarted
+
   handlers:
     - name: Regenerate Initramfs
       command: mkinitcpio -P
