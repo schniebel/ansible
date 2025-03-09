@@ -24,14 +24,13 @@
         name: nvidia-dkms
         state: absent
 
-    - name: Install Nvidia Drivers (Using DKMS)
+    - name: Install Nvidia Drivers (Using Open Kernel)
       pacman:
         name:
-          - nvidia-dkms
+          - nvidia-open-dkms  # ✅ Open-source driver (recommended)
           - nvidia-utils
-          - lib32-nvidia-utils  # For Steam & 32-bit apps
-          - nvidia-settings      # Nvidia control panel
-          - nvidia-prime         # For hybrid graphics (if needed)
+          - lib32-nvidia-utils
+          - nvidia-settings
         state: present
 
     - name: Ensure Nouveau is Blacklisted
