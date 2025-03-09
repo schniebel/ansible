@@ -24,6 +24,11 @@
           - nvidia-prime         # For hybrid graphics (if needed)
         state: present
 
+    - name: Ensure Nouveau is Blacklisted
+      copy:
+        dest: /etc/modprobe.d/blacklist-nouveau.conf
+        content: "blacklist nouveau"
+    
     - name: Remove kms from mkinitcpio hooks
       replace:
         path: /etc/mkinitcpio.conf
@@ -38,6 +43,20 @@
 
     - name: Regenerate Initramfs
       command: mkinitcpio -P
+
+    - name: Ensure Nvidia Kernel Module is Installed via DKMS
+      command: dkms install nvidia/$(pacman -Q nvidia-dkms | awk '{print $2}')
+      register: dkms_status
+      failed_when: "'Error' in dkms_status.stderr"
+
+    - name: Ensure Nvidia Kernel Module Loads at Boot
+      copy:
+        dest: /etc/modules-load.d/nvidia.conf
+        content: |
+          nvidia
+          nvidia-modeset
+          nvidia-drm
+          nvidia-uvm
 
     - name: Install KDE Plasma
       pacman:
@@ -128,16 +147,10 @@
           Name=Disable Sleep
           Comment=Prevents sleep and screen blanking
 
-    - name: Ensure systemd prevents sleep when lid is closed
-      lineinfile:
-        path: /etc/systemd/logind.conf
-        regexp: '^#?HandleLidSwitch='
-        line: 'HandleLidSwitch=ignore'
-
-    - name: Restart systemd-logind to apply lid switch settings
-      systemd:
-        name: systemd-logind
-        state: restarted
+    - name: Verify Nvidia is Active After Installation
+      command: nvidia-smi
+      register: nvidia_status
+      failed_when: "'failed' in nvidia_status.stderr"
 
   handlers:
     - name: Regenerate Initramfs
