@@ -62,7 +62,18 @@
         dest: /etc/sddm.conf.d/kde_settings.conf
         content: |
           [General]
-          DisplayServer=x11
+          DisplayServer=X11
+
+    - name: Ensure Plasma X11 is the default session for all users
+      copy:
+        dest: /usr/share/xsessions/plasma.desktop
+        content: |
+          [Desktop Entry]
+          Name=Plasma
+          Comment=KDE Plasma
+          Exec=/usr/bin/startplasma-x11
+          TryExec=/usr/bin/startplasma-x11
+          Type=Application
 
     - name: Set ibt=off in GRUB for 11th Gen+ Intel CPUs
       replace:
@@ -77,6 +88,17 @@
     - name: Enable SDDM to start at boot
       systemd:
         name: sddm
+        enabled: yes
+        state: started
+
+    - name: Install OpenSSH
+      pacman:
+        name: openssh
+        state: present
+
+    - name: Enable and start SSH service
+      systemd:
+        name: sshd
         enabled: yes
         state: started
 
