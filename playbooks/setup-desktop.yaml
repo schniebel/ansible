@@ -44,8 +44,17 @@
     - name: Regenerate Initramfs
       command: mkinitcpio -P
 
+    - name: Get installed Nvidia DKMS version
+      command: pacman -Q nvidia-dkms
+      register: nvidia_dkms_version_raw
+      changed_when: false
+
+    - name: Extract Nvidia DKMS version
+      set_fact:
+        nvidia_dkms_version: "{{ nvidia_dkms_version_raw.stdout.split(' ')[1] }}"
+
     - name: Ensure Nvidia Kernel Module is Installed via DKMS
-      command: dkms install nvidia/$(pacman -Q nvidia-dkms | awk '{print $2}')
+      command: dkms install nvidia/{{ nvidia_dkms_version }}
       register: dkms_status
       failed_when: "'Error' in dkms_status.stderr"
 
