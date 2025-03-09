@@ -51,6 +51,12 @@
         name: sddm
         state: present
 
+    - name: Ensure SDDM config directory exists
+      file:
+        path: /etc/sddm.conf.d
+        state: directory
+        mode: '0755'
+
     - name: Force SDDM to use X11
       copy:
         dest: /etc/sddm.conf.d/kde_settings.conf
