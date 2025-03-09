@@ -19,12 +19,12 @@
           - xorg-server
         state: present
 
-    - name: Reinstall Nvidia DKMS (Ensure Source Files Exist)
+    - name: Reinstall Nvidia Open DKMS (Ensure Source Files Exist)
       pacman:
-        name: nvidia-dkms
+        name: nvidia-open-dkms
         state: absent
 
-    - name: Install Nvidia Drivers (Using Open Kernel)
+    - name: Install Nvidia Open-Source Drivers
       pacman:
         name:
           - nvidia-open-dkms  # ✅ Open-source driver (recommended)
@@ -37,7 +37,7 @@
       copy:
         dest: /etc/modprobe.d/blacklist-nouveau.conf
         content: "blacklist nouveau"
-    
+
     - name: Remove kms from mkinitcpio hooks
       replace:
         path: /etc/mkinitcpio.conf
@@ -53,12 +53,12 @@
     - name: Regenerate Initramfs
       command: mkinitcpio -P
 
-    - name: Get installed Nvidia DKMS version
-      command: pacman -Q nvidia-dkms
+    - name: Get installed Nvidia Open DKMS version
+      command: pacman -Q nvidia-open-dkms
       register: nvidia_dkms_version_raw
       changed_when: false
 
-    - name: Extract Nvidia DKMS version
+    - name: Extract Nvidia Open DKMS version
       set_fact:
         nvidia_dkms_version: "{{ nvidia_dkms_version_raw.stdout.split(' ')[1] }}"
 
@@ -68,7 +68,7 @@
       register: dkms_source
 
     - name: Ensure Nvidia Kernel Module is Installed via DKMS
-      command: dkms install nvidia/{{ nvidia_dkms_version }}
+      command: dkms install nvidia-open/{{ nvidia_dkms_version }}
       register: dkms_status
       failed_when: "'Error' in dkms_status.stderr"
       when: dkms_source.stat.exists
