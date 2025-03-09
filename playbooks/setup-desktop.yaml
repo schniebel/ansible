@@ -19,6 +19,11 @@
           - xorg-server
         state: present
 
+    - name: Reinstall Nvidia DKMS (Ensure Source Files Exist)
+      pacman:
+        name: nvidia-dkms
+        state: absent
+
     - name: Install Nvidia Drivers (Using DKMS)
       pacman:
         name:
@@ -58,10 +63,16 @@
       set_fact:
         nvidia_dkms_version: "{{ nvidia_dkms_version_raw.stdout.split(' ')[1] }}"
 
+    - name: Verify Nvidia DKMS Source Directory Exists
+      stat:
+        path: "/usr/src/nvidia-{{ nvidia_dkms_version }}"
+      register: dkms_source
+
     - name: Ensure Nvidia Kernel Module is Installed via DKMS
       command: dkms install nvidia/{{ nvidia_dkms_version }}
       register: dkms_status
       failed_when: "'Error' in dkms_status.stderr"
+      when: dkms_source.stat.exists
 
     - name: Ensure Nvidia Kernel Module Loads at Boot
       copy:
