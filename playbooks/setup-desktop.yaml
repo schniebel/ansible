@@ -207,18 +207,23 @@
       command: yay -S --noconfirm google-chrome
       args:
         creates: /usr/bin/google-chrome
+      become: no  # Run as the non-root user
+      become_user: "{{ ansible_user_id }}"
 
     - name: Install Slack via AUR
       command: yay -S --noconfirm slack-desktop
       args:
         creates: /usr/bin/slack
       become: no
+      become_user: "{{ ansible_user_id }}"
 
     - name: Install Notesnook via AUR
       command: yay -S --noconfirm notesnook-bin
       args:
         creates: /usr/bin/notesnook
       become: no
+      become_user: "{{ ansible_user_id }}"
+      
     - name: Install GitHub CLI
       pacman:
         name: github-cli
