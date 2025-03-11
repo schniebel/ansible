@@ -176,10 +176,26 @@
       register: nvidia_status
       failed_when: "'failed' in nvidia_status.stderr"
 
-    - name: Install yay (AUR helper)
+    - name: Install base-devel and git (Required for AUR package builds)
       pacman:
-        name: yay
+        name:
+          - base-devel
+          - git
         state: present
+    
+    - name: Clone yay AUR repository
+      git:
+        repo: https://aur.archlinux.org/yay.git
+        dest: /opt/yay
+        clone: yes
+        update: no
+    
+    - name: Build and install yay
+      command:
+        cmd: makepkg -si --noconfirm
+        chdir: /opt/yay
+      become: yes
+      become_user: nobody  # Run as non-root user to avoid issues
 
     - name: Install Google Chrome via AUR using yay
       command: yay -S --noconfirm google-chrome
@@ -199,6 +215,12 @@
     - name: Install Zoom
       pacman:
         name: zoom
+        state: present
+
+    - name: Install Notesnook
+      become: yes
+      pacman:
+        name: notesnook-bin
         state: present
 
   handlers:
