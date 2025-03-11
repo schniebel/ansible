@@ -176,6 +176,31 @@
       register: nvidia_status
       failed_when: "'failed' in nvidia_status.stderr"
 
+    - name: Install yay (AUR helper)
+      pacman:
+        name: yay
+        state: present
+
+    - name: Install Google Chrome via AUR using yay
+      command: yay -S --noconfirm google-chrome
+      args:
+        creates: /usr/bin/google-chrome
+
+    - name: Install Slack
+      pacman:
+        name: slack-desktop
+        state: present
+
+    - name: Install GitHub CLI
+      pacman:
+        name: github-cli
+        state: present
+
+    - name: Install Zoom
+      pacman:
+        name: zoom
+        state: present
+
   handlers:
     - name: Regenerate Initramfs
       command: mkinitcpio -P
