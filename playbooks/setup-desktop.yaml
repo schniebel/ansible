@@ -187,7 +187,7 @@
       command: echo $HOME
       register: user_home
       changed_when: false
-      become: no  # Run as the regular user
+      become: no  # Run as non-root user
 
     - name: Clone yay AUR repository
       git:
@@ -208,11 +208,17 @@
       args:
         creates: /usr/bin/google-chrome
 
-    - name: Install Slack
-      pacman:
-        name: slack-desktop
-        state: present
+    - name: Install Slack via AUR
+      command: yay -S --noconfirm slack-desktop
+      args:
+        creates: /usr/bin/slack
+      become: no
 
+    - name: Install Notesnook via AUR
+      command: yay -S --noconfirm notesnook-bin
+      args:
+        creates: /usr/bin/notesnook
+      become: no
     - name: Install GitHub CLI
       pacman:
         name: github-cli
@@ -222,13 +228,7 @@
       pacman:
         name: zoom
         state: present
-
-    - name: Install Notesnook
-      become: yes
-      pacman:
-        name: notesnook-bin
-        state: present
-
+        
   handlers:
     - name: Regenerate Initramfs
       command: mkinitcpio -P
