@@ -183,19 +183,25 @@
           - git
         state: present
     
+    - name: Ensure user home directory is set correctly
+      command: echo $HOME
+      register: user_home
+      changed_when: false
+      become: no  # Run as the regular user
+
     - name: Clone yay AUR repository
       git:
         repo: https://aur.archlinux.org/yay.git
-        dest: "/home/{{ ansible_env.USER }}/yay"
+        dest: "{{ user_home.stdout }}/yay"
         clone: yes
         update: no
-      become: no  # Clone as the current user
+      become: no  # Ensure it's cloned as the non-root user
 
     - name: Build and install yay
       command:
         cmd: makepkg -si --noconfirm
-        chdir: "/home/{{ ansible_env.USER }}/yay"
-      become: no  # Run as the current user
+        chdir: "{{ user_home.stdout }}/yay"
+      become: no  # Run as the non-root user
 
     - name: Install Google Chrome via AUR using yay
       command: yay -S --noconfirm google-chrome
