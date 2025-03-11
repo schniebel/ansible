@@ -198,6 +198,14 @@
       become: no  # Ensure it's cloned as the non-root user
       become_user: "{{ ansible_user_id }}"
 
+    - name: Fix permissions for yay directory
+      file:
+        path: "{{ ansible_env.HOME }}/yay"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+        mode: '0755'
+
     - name: Build and install yay
       command:
         cmd: makepkg -si --noconfirm
