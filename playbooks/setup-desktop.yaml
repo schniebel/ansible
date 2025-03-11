@@ -186,16 +186,16 @@
     - name: Clone yay AUR repository
       git:
         repo: https://aur.archlinux.org/yay.git
-        dest: /opt/yay
+        dest: "/home/{{ ansible_env.USER }}/yay"
         clone: yes
         update: no
-    
+      become: no  # Clone as the current user
+
     - name: Build and install yay
       command:
         cmd: makepkg -si --noconfirm
-        chdir: /opt/yay
-      become: yes
-      become_user: nobody  # Run as non-root user to avoid issues
+        chdir: "/home/{{ ansible_env.USER }}/yay"
+      become: no  # Run as the current user
 
     - name: Install Google Chrome via AUR using yay
       command: yay -S --noconfirm google-chrome
